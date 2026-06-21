@@ -2,61 +2,58 @@ import requests
 import json
 import os
 
-# Scratch API からクラウド変数を取得
+# Scratch API
 PROJECT_ID = "あなたのScratchプロジェクトID"
 CLOUD_API = f"https://clouddata.scratch.mit.edu/logs?projectid={PROJECT_ID}&limit=1"
+
+# 返信用クラウド変数
+CLOUD_SET_API = "https://clouddata.scratch.mit.edu/set"
 
 def fetch_cloud():
     r = requests.get(CLOUD_API)
     logs = r.json()
     if not logs:
         return None
-    return logs[0]["value"]  # 最新のクラウド変数の値
+    return logs[0]["value"]
 
 def parse_protocol(value):
-    """
-    形式: [アカウント番号].[命令コード][プロジェクトID][データ本体]
-    例: 12.104001234567890
-    """
     if "." not in value:
         return None
 
     account, payload = value.split(".", 1)
 
-    command = payload[0]          # 命令コード
-    project_id = payload[1:3]     # プロジェクトID（2桁）
-    data = payload[3:]            # データ本体
+    command = payload[0]          # 1=セーブ, 2=ロード
+    data = payload[1:]            # データ本体（ロード時は空）
 
     return {
         "account": account,
         "command": command,
-        "project_id": project_id,
         "data": data
     }
 
-def save_data(parsed):
-    project_folder = f"database/project_{parsed['project_id']}"
-    os.makedirs(project_folder, exist_ok=True)
+def load_db():
+    with open("server/data/users.json", "r") as f:
+        return json.load(f)
 
-    file_path = f"{project_folder}/user_{parsed['account']}.json"
+def save_db(db):
+    with open("server/data/users.json", "w") as f:
+        json.dump(db, f, indent=2)
 
-    # 既存データ読み込み
-    if os.path.exists(file_path):
-        with open(file_path, "r") as f:
-            user_data = json.load(f)
-    else:
-        user_data = {}
+def send_to_scratch(account, data):
+    """
+    返信クラウド変数に書き込む
+    形式: [アカウント番号].3[データ本体]
+    """
+    payload = f"{account}.3{data}"
 
-    # 命令コードに応じて処理
-    if parsed["command"] == "1":  # セーブ
-        user_data["save"] = parsed["data"]
-
-    elif parsed["command"] == "3":  # 表示名変更
-        user_data["displayName"] = parsed["data"]
-
-    # 保存
-    with open(file_path, "w") as f:
-        json.dump(user_data, f, indent=2)
+    requests.post(
+        CLOUD_SET_API,
+        json={
+            "projectid": PROJECT_ID,
+            "name": "reply",  # 返信用クラウド変数名
+            "value": payload
+        }
+    )
 
 def main():
     value = fetch_cloud()
@@ -69,8 +66,27 @@ def main():
         print("Invalid format.")
         return
 
-    save_data(parsed)
-    print("Saved:", parsed)
+    account = parsed["account"]
+    command = parsed["command"]
+    data = parsed["data"]
+
+    db = load_db()
+
+    # ユーザーが未登録なら初期化
+    if account not in db:
+        db[account] = {}
+
+    # セーブ（スロット1）
+    if command == "1":
+        db[account]["saveSlot1"] = data
+        save_db(db)
+        print(f"Saved slot1 for {account}")
+
+    # ロード（スロット2）
+    elif command == "2":
+        saved = db[account].get("saveSlot1", "")
+        send_to_scratch(account, saved)
+        print(f"Returned save data to {account}")
 
 if __name__ == "__main__":
     main()

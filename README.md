@@ -20,6 +20,6 @@ Scratch から送られるデータ形式：
 
 ### GitHub 保存先
 > users/[ユーザーコード]/
->> ├ display.txt
->> ├ username.txt
->> └ data.txt
+>> display.txt
+>> username.txt
+>> data.txt

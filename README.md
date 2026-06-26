@@ -7,9 +7,7 @@ Scratch → Render → GitHub のデータ保存サービス。
 ### POST /scratch
 
 Scratch から送られるデータ形式：
-‘‘‘
-[ユーザー名4桁コード列].[識別番号][データ本体]
-‘‘‘
+> [ユーザー名4桁コード列].[識別番号][データ本体]
 
 ### 識別番号
 
@@ -21,9 +19,7 @@ Scratch から送られるデータ形式：
 | 4 | データロード |
 
 ### GitHub 保存先
-‘‘‘
-users/[ユーザーコード]/
-├ display.txt
-├ username.txt
-└ data.txt
-‘‘‘
+> users/[ユーザーコード]/
+> ├ display.txt
+> ├ username.txt
+> └ data.txt

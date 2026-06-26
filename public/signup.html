@@ -8,12 +8,9 @@
 <div class="card">
     <h1>アカウント作成</h1>
 
-    <!-- signup.html -->
     <input id="username" placeholder="Scratchユーザー名">
     <input id="display" placeholder="表示名">
     <input id="password" type="password" placeholder="パスワード">
-
-
 
     <button onclick="signup()">作成</button>
 
@@ -22,20 +19,24 @@
 
 <script>
 async function signup() {
+    const username = document.getElementById("username").value;
+    const display = document.getElementById("display").value;
+    const password = document.getElementById("password").value;
+
     const res = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            userCode: userCode.value,
-            display: display.value,
-            username: username.value,
-            password: password.value
-        })
+        body: JSON.stringify({ username, display, password })
     });
 
     const json = await res.json();
-    if (json.ok) location.href = "index.html";
-    else msg.innerText = "作成できませんでした";
+
+    if (json.ok) {
+        msg.innerText = "アカウント作成成功！";
+        setTimeout(() => location.href = "index.html", 1000);
+    } else {
+        msg.innerText = "作成できませんでした: " + json.error;
+    }
 }
 </script>
 </body>

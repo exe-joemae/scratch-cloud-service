@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scratch Project Registration</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Scratch プロジェクト登録</h1>
+
+    <input id="projectUrl" placeholder="https://scratch.mit.edu/projects/123456789/">
+    <button onclick="registerProject()">登録</button>
+
+    <pre id="result"></pre>
+
+    <script>
+        async function registerProject() {
+            const url = document.getElementById("projectUrl").value;
+            const id = url.match(/projects\/(\d+)/)[1];
+
+            const res = await fetch(`/api/project/${id}`);
+            const json = await res.json();
+
+            document.getElementById("result").innerText =
+                JSON.stringify(json, null, 2);
+        }
+    </script>
+</body>
+</html>

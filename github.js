@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const REPO_OWNER = "あなたのGitHub名";
+const REPO_OWNER = "exe-joemae";
 const REPO_NAME = "scratch-cloud-service";
 
 export async function saveToGitHub(path, content) {
